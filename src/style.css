@@ -1,179 +1,244 @@
-/* ── Reset ── */
-html, body {
-  margin: 0;
-  width: 100%;
-  height: 100%;
+/* style.css */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #111318;
   overflow: hidden;
-  font-family: system-ui, -apple-system, sans-serif;
-  background: #0d0d14;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  font-size: 12px;
+  color: #cdd6f4;
 }
 
-canvas {
-  display: block;
+canvas#gfx-main {
+  position: fixed;
+  inset: 0;
   width: 100%;
   height: 100%;
+  display: block;
 }
 
-/* ── GUI overlay ── */
-#gui {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 100;
-  pointer-events: none;
-}
-
+/* ── Panel base ─────────────────────────────────────────────────────────────── */
 .gui-panel {
-  pointer-events: all;
-  background: rgba(10, 10, 18, 0.88);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.10);
-  border-radius: 12px;
-  padding: 16px 18px;
-  color: #e0e8ff;
-  width: 270px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 230px;
+  background: rgba(17, 19, 24, 0.92);
+  backdrop-filter: blur(10px);
+  border-color: rgba(255,255,255,0.08);
+  border-style: solid;
+  padding: 14px 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 10;
 }
 
+.gui-panel--left  { left: 0;  border-right-width: 1px; }
+.gui-panel--right { right: 0; border-left-width: 1px;  }
+
+/* ── Typography ─────────────────────────────────────────────────────────────── */
 .gui-title {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  margin-bottom: 14px;
-  color: #a8c8ff;
-}
-
-.gui-section {
-  margin-bottom: 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  padding-bottom: 14px;
-}
-
-.gui-section:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #fff;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 4px;
 }
 
 .gui-label {
   font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .1em;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: #6888bb;
-  margin-bottom: 8px;
+  color: #7f849c;
+  margin-bottom: 4px;
 }
 
-/* ── Shading model buttons ── */
+.gui-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.gui-hint {
+  font-size: 10px;
+  color: #585b70;
+  text-align: center;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────────── */
 .model-btns {
   display: flex;
-  gap: 6px;
   flex-wrap: wrap;
-  margin-bottom: 8px;
+  gap: 4px;
+  margin-bottom: 2px;
 }
 
-.model-btn {
+.model-btn, .shape-btn {
   flex: 1 1 auto;
-  padding: 5px 4px;
-  font-size: 11px;
-  font-weight: 600;
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 6px;
+  padding: 5px 6px;
   background: rgba(255,255,255,0.05);
-  color: #8aacdd;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-
-.model-btn:hover {
-  background: rgba(100,160,255,0.15);
-  color: #c4daff;
-  border-color: rgba(100,160,255,0.35);
-}
-
-.model-btn.active {
-  background: rgba(74, 158, 255, 0.25);
-  color: #d0e8ff;
-  border-color: rgba(74, 158, 255, 0.60);
-}
-
-.model-desc {
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: #cdd6f4;
   font-size: 11px;
-  line-height: 1.55;
-  color: #8899bb;
-  min-height: 36px;
-  padding: 4px 0;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.model-btn:hover, .shape-btn:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.2);
+}
+.model-btn.active {
+  background: #1e66f5;
+  border-color: #1e66f5;
+  color: #fff;
+  font-weight: 600;
 }
 
-/* ── Sliders ── */
+/* ── Sliders ─────────────────────────────────────────────────────────────────── */
 .slider-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 90px 1fr 32px;
   align-items: center;
   gap: 6px;
-  margin-bottom: 6px;
 }
+.slider-label { color: #a6adc8; font-size: 11px; }
+.slider-val   { color: #cdd6f4; font-size: 11px; text-align: right; }
 
-.slider-label {
-  font-size: 11px;
-  color: #8899bb;
-  width: 86px;
-  flex-shrink: 0;
-}
-
-.slider-row input[type="range"] {
-  flex: 1;
-  accent-color: #4a9eff;
+input[type="range"] {
+  width: 100%;
+  accent-color: #1e66f5;
   height: 4px;
   cursor: pointer;
 }
 
-.slider-val {
-  font-size: 11px;
-  color: #a0bce0;
-  width: 32px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ── Checkbox ── */
+/* ── Checkboxes ──────────────────────────────────────────────────────────────── */
 .checkbox-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  color: #8899bb;
+  gap: 6px;
+  color: #a6adc8;
   cursor: pointer;
-  margin-top: 4px;
+  font-size: 11px;
+  margin-top: 2px;
 }
+.checkbox-row input { accent-color: #1e66f5; cursor: pointer; }
 
-.checkbox-row input {
-  accent-color: #4a9eff;
-}
-
-/* ── Color pickers ── */
+/* ── Color pickers ───────────────────────────────────────────────────────────── */
 .color-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  color: #a6adc8;
   font-size: 11px;
-  color: #8899bb;
 }
-
 .color-row input[type="color"] {
   width: 40px;
-  height: 24px;
+  height: 22px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  background: none;
   padding: 0;
+  background: none;
 }
 
-/* ── Hint ── */
-.gui-hint {
+/* ── Model description ───────────────────────────────────────────────────────── */
+.model-desc {
   font-size: 10px;
-  color: #445566;
+  color: #7f849c;
+  line-height: 1.5;
+  min-height: 28px;
+}
+
+/* ── Scene list (right panel) ────────────────────────────────────────────────── */
+.scene-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.scene-item {
+  width: 100%;
+  padding: 7px 10px;
+  text-align: left;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  color: #cdd6f4;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.scene-item:hover  { background: rgba(255,255,255,0.09); }
+.scene-item.active {
+  background: #1e66f5;
+  border-color: #1e66f5;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ── Object panel (right panel, below list) ──────────────────────────────────── */
+.object-panel {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.no-selection {
+  font-size: 11px;
+  color: #585b70;
   text-align: center;
-  margin-top: 10px;
-  letter-spacing: 0.04em;
+  padding: 16px 0;
+}
+
+.obj-panel-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #7f849c;
+  margin-bottom: 4px;
+}
+
+.inspector-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+.inspector-actions button { flex: 1; }
+
+.remove-btn {
+  color: #f38ba8 !important;
+  border-color: rgba(243,139,168,0.3) !important;
+  background: rgba(243,139,168,0.08) !important;
+}
+.remove-btn:hover {
+  background: rgba(243,139,168,0.18) !important;
+}
+
+.file-input {
+  font-size: 10px;
+  color: #7a9ccc;
+  width: 100%;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.no-selection small {
+  color: #585b70;
+  display: block;
+  margin-top: 4px;
 }
