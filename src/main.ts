@@ -1,10 +1,17 @@
 /// <reference types="@webgpu/types" />
 
+declare global {
+  interface Navigator {
+    gpu: GPU;
+  }
+}
+
 import "./style.css";
 import shaderCode from "./shader.wgsl?raw";
 import { mat4 } from "./math";
 import type { Vec3 } from "./math";
 import { hexToRgb, initGUI, getGlobalState, getObjects, getSelectedIndex } from "./gui";
+
 
 
 if (!navigator.gpu) throw new Error("WebGPU not supported");
@@ -13,7 +20,7 @@ if (!canvas) throw new Error("Canvas #gfx-main not found");
 const adapter = await navigator.gpu.requestAdapter();
 if (!adapter) throw new Error("No GPU adapter found");
 const device  = await adapter.requestDevice();
-const context = canvas.getContext("webgpu")!;
+const context = canvas.getContext("webgpu") as GPUCanvasContext;
 const format  = navigator.gpu.getPreferredCanvasFormat();
 
 let depthTexture: GPUTexture | null = null;
@@ -134,7 +141,7 @@ function injectBarycentric(src: Float32Array): Float32Array {
 
 function makeVBuf(data: Float32Array) {
   const buf = device.createBuffer({ size: data.byteLength, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
-  device.queue.writeBuffer(buf, 0, data);
+  device.queue.writeBuffer(buf, 0, new Float32Array(data));
   return { buf, count: data.length / 11 };
 }
 const cubeGeo   = makeVBuf(injectBarycentric(generateCube()));
@@ -203,7 +210,7 @@ export async function uploadTexture(file: File, obj: ReturnType<typeof import(".
     { binding:1, resource: defaultSampler },
     { binding:2, resource: tex.createView() },
   ]});
-  (obj.gpu as Record<string,unknown>).tex = tex;
+  (obj.gpu as unknown as Record<string,unknown>).tex = tex;
 }
 
 
@@ -379,7 +386,13 @@ function frame(now: number) {
 
   for (let i=0;i<objects.length;i++) {
     const obj=objects[i];
-    const geo=obj.customGeo ?? getGeometry(obj.shape);
+    let geo;
+
+    if (obj.shape === "obj") {
+      geo = obj.customGeo;
+    } else {
+      geo = getGeometry(obj.shape);
+    }
     const { uf32, uu32, uniformBuf, uab, bindGroup }=obj.gpu;
 
     const model=buildModel(obj);
@@ -401,7 +414,9 @@ function frame(now: number) {
 
     device.queue.writeBuffer(uniformBuf,0,uab);
     pass.setBindGroup(0,bindGroup);
-    pass.setVertexBuffer(0,geo.buf);
+    if (!geo) return;
+
+    pass.setVertexBuffer(0, geo.buf);
     pass.draw(geo.count);
   }
 

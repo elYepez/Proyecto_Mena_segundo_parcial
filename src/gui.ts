@@ -329,7 +329,7 @@ export function initGUI() {
   (["lightX","lightY","lightZ"] as const).forEach(id=>{
     const el=document.getElementById(id) as HTMLInputElement;
     el.addEventListener("input",()=>{
-      (globalState as Record<string,unknown>)[id]=parseFloat(el.value);
+      (globalState as unknown as Record<string,unknown>)[id]=parseFloat(el.value);
       document.getElementById(`${id}-val`)!.textContent=el.value;
     });
   });
