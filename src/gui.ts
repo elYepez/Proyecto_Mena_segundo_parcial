@@ -75,14 +75,14 @@ function wire(id:string, set:(v:number)=>void) {
 }
 
 const MODEL_DESCS: Record<number,string> = {
-  0:"Flat: face normal from dpdx/dpdy — one colour per triangle.",
-  1:"Gouraud: lighting per vertex, GPU interpolates colour across face.",
-  2:"Phong: per-fragment lighting with interpolated normal, R·V specular.",
-  3:"Blinn-Phong: per-fragment lighting with half-vector H=normalize(L+V).",
-  4:"Normal Buffer: world-space normals as RGB (R=X  G=Y  B=Z), remapped [−1,1]→[0,1].",
-  5:"Wireframe: barycentric edge detection — black edges, white fill, z-buffer hides back faces.",
-  6:"Depth: linear depth as greyscale — directly visualises the z-buffer.",
-  7:"Texture × Phong: spherical UV coords mapped from world-space normal, lit with Phong.",
+  0:"Flat",
+  1:"Gouraud",
+  2:"Phong",
+  3:"Blinn-Phong",
+  4:"Normal Buffer",
+  5:"Wireframe",
+  6:"Depth",
+  7:"Texture × Phong",
 };
 
 
@@ -273,9 +273,7 @@ export function initGUI() {
   </div>
 
   <div class="gui-hint">
-    No selection: drag orbits camera<br>
-    Object selected: drag = arcball rotation<br>
-    Scroll to zoom (clips near/far automatically)
+    Ypez proyecto a WebGpu
   </div>
 </div>
 
