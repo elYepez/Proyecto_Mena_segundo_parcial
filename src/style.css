@@ -17,7 +17,6 @@ canvas#gfx-main {
   display: block;
 }
 
-/* ── Panel base ─────────────────────────────────────────────────────────────── */
 .gui-panel {
   position: fixed;
   top: 0;
@@ -38,7 +37,7 @@ canvas#gfx-main {
 .gui-panel--left  { left: 0;  border-right-width: 1px; }
 .gui-panel--right { right: 0; border-left-width: 1px;  }
 
-/* ── Typography ─────────────────────────────────────────────────────────────── */
+
 .gui-title {
   font-size: 13px;
   font-weight: 700;
@@ -75,7 +74,7 @@ canvas#gfx-main {
   padding-top: 8px;
 }
 
-/* ── Buttons ─────────────────────────────────────────────────────────────────── */
+
 .model-btns {
   display: flex;
   flex-wrap: wrap;
@@ -105,7 +104,6 @@ canvas#gfx-main {
   font-weight: 600;
 }
 
-/* ── Sliders ─────────────────────────────────────────────────────────────────── */
 .slider-row {
   display: grid;
   grid-template-columns: 90px 1fr 32px;
@@ -122,7 +120,7 @@ input[type="range"] {
   cursor: pointer;
 }
 
-/* ── Checkboxes ──────────────────────────────────────────────────────────────── */
+
 .checkbox-row {
   display: flex;
   align-items: center;
@@ -134,7 +132,7 @@ input[type="range"] {
 }
 .checkbox-row input { accent-color: #1e66f5; cursor: pointer; }
 
-/* ── Color pickers ───────────────────────────────────────────────────────────── */
+
 .color-row {
   display: flex;
   align-items: center;
@@ -152,7 +150,7 @@ input[type="range"] {
   background: none;
 }
 
-/* ── Model description ───────────────────────────────────────────────────────── */
+
 .model-desc {
   font-size: 10px;
   color: #7f849c;
@@ -160,7 +158,7 @@ input[type="range"] {
   min-height: 28px;
 }
 
-/* ── Scene list (right panel) ────────────────────────────────────────────────── */
+
 .scene-list {
   display: flex;
   flex-direction: column;
@@ -188,7 +186,7 @@ input[type="range"] {
   font-weight: 600;
 }
 
-/* ── Object panel (right panel, below list) ──────────────────────────────────── */
+
 .object-panel {
   border-top: 1px solid rgba(255,255,255,0.08);
   padding-top: 10px;

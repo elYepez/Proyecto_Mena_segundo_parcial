@@ -6,7 +6,7 @@ import { mat4 } from "./math";
 import type { Vec3 } from "./math";
 import { hexToRgb, initGUI, getGlobalState, getObjects, getSelectedIndex } from "./gui";
 
-// ── WebGPU init ───────────────────────────────────────────────────────────────
+
 if (!navigator.gpu) throw new Error("WebGPU not supported");
 const canvas = document.querySelector("#gfx-main") as HTMLCanvasElement;
 if (!canvas) throw new Error("Canvas #gfx-main not found");
@@ -31,8 +31,7 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-// ── Geometry generators ───────────────────────────────────────────────────────
-// stride 8: [pos3, norm3, uv2]
+
 function generateCube(): Float32Array {
   type V3 = [number,number,number];
   const faces: Array<{ n: V3; verts: number[][] }> = [
@@ -76,7 +75,7 @@ function generateSphere(stacks=64, slices=64): Float32Array {
   return new Float32Array(data);
 }
 
-// ── OBJ parser ────────────────────────────────────────────────────────────────
+
 export function parseOBJ(src: string): { data: Float32Array; center: Vec3; radius: number } {
   const pos: number[][] = [], norm: number[][] = [], uvs: number[][] = [], out: number[] = [];
   for (const raw of src.split("\n")) {
@@ -101,7 +100,7 @@ export function parseOBJ(src: string): { data: Float32Array; center: Vec3; radiu
       }
     }
   }
-  // Center and compute bounding radius
+
   const vCount = out.length / 8;
   let cx=0,cy=0,cz=0;
   for (let i=0;i<vCount;i++) { cx+=out[i*8]; cy+=out[i*8+1]; cz+=out[i*8+2]; }
@@ -115,10 +114,7 @@ export function parseOBJ(src: string): { data: Float32Array; center: Vec3; radiu
   return { data: new Float32Array(out), center:[cx,cy,cz], radius };
 }
 
-// ── Barycentric injection [stride 8 → stride 11] ──────────────────────────────
-// Each triangle's 3 vertices get bary coords [1,0,0] [0,1,0] [0,0,1].
-// GPU interpolates them → fragment gets λ values for free (barycentric interpolation).
-// min(λ0,λ1,λ2)≈0 means "near an edge" → used for wireframe in the shader.
+
 function injectBarycentric(src: Float32Array): Float32Array {
   const triCount = src.length / 8 / 3;
   const dst = new Float32Array(triCount * 3 * 11);
@@ -135,7 +131,7 @@ function injectBarycentric(src: Float32Array): Float32Array {
   return dst;
 }
 
-// ── GPU buffer helpers ────────────────────────────────────────────────────────
+
 function makeVBuf(data: Float32Array) {
   const buf = device.createBuffer({ size: data.byteLength, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
   device.queue.writeBuffer(buf, 0, data);
@@ -146,7 +142,7 @@ const sphereGeo = makeVBuf(injectBarycentric(generateSphere()));
 export function makeCustomGeo(data: Float32Array) { return makeVBuf(injectBarycentric(data)); }
 export function getGeometry(shape: "cube"|"sphere") { return shape==="cube" ? cubeGeo : sphereGeo; }
 
-// ── Default 1×1 white texture ─────────────────────────────────────────────────
+
 function makeWhiteTexture(): GPUTexture {
   const tex = device.createTexture({ size:[1,1], format:"rgba8unorm",
     usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
@@ -156,7 +152,7 @@ function makeWhiteTexture(): GPUTexture {
 const defaultSampler = device.createSampler({ magFilter:"linear", minFilter:"linear",
   addressModeU:"repeat", addressModeV:"repeat" });
 
-// ── Bind group layout (binding 0=uniforms, 1=sampler, 2=texture) ──────────────
+
 const UNIFORM_SIZE = 288;
 const bgl = device.createBindGroupLayout({ entries:[
   { binding:0, visibility: GPUShaderStage.VERTEX|GPUShaderStage.FRAGMENT, buffer:{type:"uniform"} },
@@ -164,7 +160,7 @@ const bgl = device.createBindGroupLayout({ entries:[
   { binding:2, visibility: GPUShaderStage.FRAGMENT, texture:{sampleType:"float"} },
 ]});
 
-// ── Pipeline ──────────────────────────────────────────────────────────────────
+
 const shader = device.createShaderModule({ code: shaderCode });
 const pipeline = device.createRenderPipeline({
   layout: device.createPipelineLayout({ bindGroupLayouts:[bgl] }),
@@ -194,7 +190,7 @@ export function makeObjectGPU(texture?: GPUTexture) {
   return { uniformBuf, bindGroup, uab, uf32:new Float32Array(uab), uu32:new Uint32Array(uab), tex };
 }
 
-// ── Texture upload helper (called from gui.ts) ────────────────────────────────
+
 export async function uploadTexture(file: File, obj: ReturnType<typeof import("./gui").getObjects>[0]) {
   const bitmap = await createImageBitmap(file, { colorSpaceConversion:"none" });
   const tex = device.createTexture({ size:[bitmap.width, bitmap.height], format:"rgba8unorm",
@@ -210,11 +206,6 @@ export async function uploadTexture(file: File, obj: ReturnType<typeof import(".
   (obj.gpu as Record<string,unknown>).tex = tex;
 }
 
-// ── Arcball ───────────────────────────────────────────────────────────────────
-// Projects screen coords onto a virtual unit sphere (or its hyperbolic extension
-// outside radius 1). The cross product of two such projected points gives the
-// rotation axis; the angle comes from the dot product.
-// Reference: http://courses.cms.caltech.edu/cs171/assignments/hw3/hw3-notes/notes-hw3.html
 
 type Quat = [number,number,number,number]; // [x,y,z,w]
 
@@ -245,7 +236,7 @@ function qToMat4(q: Quat): Float32Array {
   return m;
 }
 
-// Project NDC (x,y) onto the unit sphere or hyperbolic sheet outside radius 1
+
 function projectOnSphere(nx: number, ny: number): [number,number,number] {
   const r2 = nx*nx + ny*ny;
   if (r2 <= 1.0) return [nx, ny, Math.sqrt(1 - r2)];
@@ -254,7 +245,7 @@ function projectOnSphere(nx: number, ny: number): [number,number,number] {
 }
 
 function arcballQuat(p1: [number,number,number], p2: [number,number,number]): Quat {
-  // axis = p1 × p2, angle = acos(p1·p2)
+  
   const axis: [number,number,number] = [
     p1[1]*p2[2] - p1[2]*p2[1],
     p1[2]*p2[0] - p1[0]*p2[2],
@@ -267,15 +258,12 @@ function arcballQuat(p1: [number,number,number], p2: [number,number,number]): Qu
   return qNorm([axis[0]/len*s, axis[1]/len*s, axis[2]/len*s, Math.cos(angle/2)]);
 }
 
-// Per-object stored quaternion (accumulated rotation)
-// Stored on the SceneObject, accessed via getObjects()
 
-// Camera orbit state (used when no object is selected)
 let camAzimuth   = 0.4;
 let camElevation = 0.3;
 let camDistance  = 9;
 
-// Zoom / clipping planes — exposed so gui can read them
+
 export const clipPlanes = { near: 0.1, far: 100 };
 
 let isDragging = false;
@@ -302,7 +290,7 @@ window.addEventListener("mousemove", e => {
   const selObj=selIdx>=0&&selIdx<objects.length ? objects[selIdx] : null;
 
   if (selObj && arcStart) {
-    // ── Arcball object rotation ────────────────────────────────────────────
+  
     const [nx,ny] = toNDC(e.clientX, e.clientY);
     const arcEnd  = projectOnSphere(nx, ny);
     const dq      = arcballQuat(arcStart, arcEnd);
@@ -310,24 +298,24 @@ window.addEventListener("mousemove", e => {
     arcStart = arcEnd; // incremental: new start = current end
     syncRotationSliders(selObj);
   } else {
-    // ── Camera orbit ───────────────────────────────────────────────────────
+  
     camAzimuth   += dx*Math.PI*2;
     camElevation  = Math.max(-Math.PI/2+0.01, Math.min(Math.PI/2-0.01, camElevation-dy*Math.PI));
   }
   lastMX=e.clientX; lastMY=e.clientY;
 });
 
-// Scroll = zoom (adjusts distance AND clips near/far to avoid z-fighting)
+
 canvas.addEventListener("wheel", e => {
   e.preventDefault();
   camDistance = Math.max(1, Math.min(200, camDistance*(1+e.deltaY*0.001)));
-  // Keep near/far proportional to distance → avoids clipping artifacts
+  
   clipPlanes.near = camDistance * 0.01;
   clipPlanes.far  = camDistance * 20;
 }, { passive:false });
 
 export function syncRotationSliders(obj: { quaternion: Quat }) {
-  // Convert quat to Euler (YXZ) for display in sliders
+  
   const [x,y,z,w] = obj.quaternion;
   const rx = Math.atan2(2*(w*x+y*z), 1-2*(x*x+y*y));
   const ry = Math.asin(Math.max(-1,Math.min(1, 2*(w*y-z*x))));
@@ -348,8 +336,7 @@ function getCamera(target: Vec3) {
   return { pos, view:mat4.lookAt(pos,target,[0,1,0]) };
 }
 
-// ── Build model matrix ────────────────────────────────────────────────────────
-// T × R(quat) × S  — rotation comes from the arcball quaternion
+
 function buildModel(obj: { position:Vec3; quaternion:Quat; scale:Vec3 }): Float32Array {
   const T  = mat4.translation(obj.position[0], obj.position[1], obj.position[2]);
   const R  = qToMat4(obj.quaternion);
@@ -357,10 +344,10 @@ function buildModel(obj: { position:Vec3; quaternion:Quat; scale:Vec3 }): Float3
   return mat4.multiply(T, mat4.multiply(R, S));
 }
 
-// ── GUI ───────────────────────────────────────────────────────────────────────
+
 initGUI();
 
-// ── Render loop ───────────────────────────────────────────────────────────────
+
 const startTime = performance.now();
 
 function frame(now: number) {
@@ -374,7 +361,6 @@ function frame(now: number) {
   const { pos:camPos, view } = getCamera(target);
 
   const aspect = canvas.width/canvas.height;
-  // Use dynamic near/far from clipPlanes for proper zooming + clipping
   const proj = mat4.perspective((60*Math.PI)/180, aspect, clipPlanes.near, clipPlanes.far);
 
   let lx=global.lightX, ly=global.lightY, lz=global.lightZ;
@@ -411,7 +397,7 @@ function frame(now: number) {
     uu32[63]=global.modelId;
     uf32[64]=or;          uf32[65]=og;          uf32[66]=ob;
     uf32[67]=t;
-    uu32[68]=obj.useTexture ? 1 : 0;  // binding 68 = use_texture flag
+    uu32[68]=obj.useTexture ? 1 : 0; 
 
     device.queue.writeBuffer(uniformBuf,0,uab);
     pass.setBindGroup(0,bindGroup);

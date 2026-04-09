@@ -1,4 +1,4 @@
-// gui.ts
+
 import type { Vec3 } from "./math";
 import { makeObjectGPU, makeCustomGeo, parseOBJ, syncRotationSliders, uploadTexture } from "./main";
 
@@ -15,7 +15,7 @@ export interface SceneObject {
   specular:    number;
   shininess:   number;
   position:    Vec3;
-  quaternion:  Quat;   // arcball rotation stored as quaternion
+  quaternion:  Quat;   
   scale:       Vec3;
   useTexture:  boolean;
   gpu:         ReturnType<typeof makeObjectGPU>;
@@ -56,7 +56,6 @@ function makeObject(shape:"cube"|"sphere", label:string): SceneObject {
     useTexture:false, gpu:makeObjectGPU() };
 }
 
-// ── DOM helpers ───────────────────────────────────────────────────────────────
 function slider(id:string, label:string, min:number, max:number, step:number, val:number) {
   const d=Number.isInteger(val)?String(val):val.toFixed(2);
   return `<div class="slider-row">
@@ -86,7 +85,7 @@ const MODEL_DESCS: Record<number,string> = {
   7:"Texture × Phong: spherical UV coords mapped from world-space normal, lit with Phong.",
 };
 
-// ── Scene list ────────────────────────────────────────────────────────────────
+
 function renderSceneList() {
   const list=document.getElementById("scene-list")!;
   list.innerHTML="";
@@ -102,7 +101,7 @@ function renderSceneList() {
   });
 }
 
-// ── Inspector ─────────────────────────────────────────────────────────────────
+
 function renderInspector() {
   const panel=document.getElementById("inspector")!;
   if (selectedIndex<0||selectedIndex>=objects.length) {
@@ -163,7 +162,7 @@ function renderInspector() {
   wire("obj-py",v=>{ obj.position[1]=v; });
   wire("obj-pz",v=>{ obj.position[2]=v; });
 
-  // Euler sliders rebuild the quaternion
+
   const rebuildQuat=()=>{
     const rx2=parseFloat((document.getElementById("obj-rx") as HTMLInputElement).value);
     const ry2=parseFloat((document.getElementById("obj-ry") as HTMLInputElement).value);
@@ -223,7 +222,7 @@ function renderInspector() {
   });
 }
 
-// ── initGUI ───────────────────────────────────────────────────────────────────
+
 export function initGUI() {
   const overlay=document.createElement("div");
   overlay.id="gui";
